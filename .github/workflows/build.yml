@@ -1,0 +1,48 @@
+name: Build
+
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    if: github.event_name != 'push' || startsWith(github.ref, 'refs/tags/') == false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Skip duplicates and docs
+        id: skip
+        uses: fkirc/skip-duplicate-actions@v5
+        with:
+          paths_ignore: '["**/README.md", "LICENSE", ".gitignore", ".editorconfig", ".idea/**"]'
+
+      - name: Validate gradle wrapper
+        if: steps.skip.outputs.should_skip != 'true'
+        uses: gradle/wrapper-validation-action@v1
+
+      - name: Setup JDK
+        if: steps.skip.outputs.should_skip != 'true'
+        uses: actions/setup-java@v3
+        with:
+          java-version: 17
+          cache: gradle
+          distribution: temurin
+
+      - name: Build with gradle
+        if: steps.skip.outputs.should_skip != 'true'
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
+        run: ./gradlew build jacocoTestReport coveralls --scan
+
+  dependabot:
+    needs: [build]
+    runs-on: ubuntu-latest
+    if: ${{ github.actor == 'dependabot[bot]' && github.event_name == 'pull_request'}}
+    steps:
+      - name: Auto-merge Dependabot PRs
+        run: gh pr merge --auto --merge "$PR_URL"
+        env:
+          PR_URL: ${{github.event.pull_request.html_url}}
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
