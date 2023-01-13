@@ -35,12 +35,14 @@ UriBuilder.fromUri("https://coditory.com?w=W&a=A")
     .addQueryParam("b", "Y")
     .addQueryParam("e", "")
     .buildUriString();
+
 // Result:
 // https://coditory.com/about?w=W&a=A&a=X&a=X&a=Y&b=Y&e=
 ```
 
 Build uri components
 ```java
+// uriComponents is a value object, that provides access to all parts of parsed uri
 UriComponents uriComponents = UriBuilder.fromUri("https://coditory.com?w=W&a=A")
     .addPathSegment("about")
     .addQueryParam("a", "X")
@@ -49,28 +51,30 @@ UriComponents uriComponents = UriBuilder.fromUri("https://coditory.com?w=W&a=A")
     .addQueryParam("b", "Y")
     .addQueryParam("e", "")
     .buildUriComponents();
-// uriComponents is a value object, that provides access to all parts of parsed uri
+
 // Result:
 // UriComponents{scheme="https", host="coditory.com", pathSegments=[about], queryParams={w=[W], a=[A, X, X, Y], b=[Y], e=[]}}
 ```
 
 Parses encoded spaces and pluses:
-```
+```java
 UriComponents plusesAsSpaces = UriBuilder.fromUri("/abc?a+b=A+B").buildUriComponents();
 UriComponents encodedSpaces = UriBuilder.fromUri("/abc?a%20b=A%20B").buildUriComponents();
 assert plusesAsSpaces == encodedSpaces
+
 // Result:
 // UriComponents{rootPath=true, pathSegments=[abc], queryParams={a b=[A B]}}
 ```
 
 By default encodes spaces as `%20`
-```
+```java
 UriBuilder.fromUri("https://coditory.com/a+bc/d%20ef/")
     .addPathSegment("x y ")
     .setFragment("frag ment")
     .addQueryParam("f oo", "b ar")
     .addQueryParam("x", "y+z")
     .buildUriString();
+
 // Result:
 // https://coditory.com/a+bc/d%20ef/x%20y%20?f%20oo=b%20ar&x=y%2Bz#frag%20ment
 ```
