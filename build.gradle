@@ -12,7 +12,7 @@ group = 'com.coditory.quark'
 description = 'Coditory Quark URI builder library'
 
 dependencies {
-    api 'org.jetbrains:annotations:23.1.0'
+    api 'org.jetbrains:annotations:24.0.0'
     testImplementation 'ch.qos.logback:logback-classic:1.4.5'
     testImplementation 'org.spockframework:spock-core:2.3-groovy-4.0'
 }
