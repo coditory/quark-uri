@@ -24,7 +24,7 @@ java {
 }
 
 group = "com.coditory.quark"
-description = "Coditory Quark URI - URI builder library'"
+description = "Coditory Quark URI - URI builder library"
 
 publishing {
     publications {

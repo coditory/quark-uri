@@ -1,7 +1,6 @@
 # Quark URI
-
 [![Build](https://github.com/coditory/quark-uri/actions/workflows/build.yml/badge.svg)](https://github.com/coditory/quark-uri/actions/workflows/build.yml)
-[![Coverage Status](https://coveralls.io/repos/github/coditory/quark-uri/badge.svg)](https://coveralls.io/github/coditory/quark-uri)
+[![Coverage](https://codecov.io/github/coditory/quark-uri/branch/master/graph/badge.svg?token=L6IOC9EBGO)](https://codecov.io/github/coditory/quark-uri)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.coditory.quark/quark-uri/badge.svg)](https://mvnrepository.com/artifact/com.coditory.quark/quark-uri)
 
 **🚧 This library as under heavy development until release of version `1.x.x` 🚧**
