@@ -41,7 +41,7 @@ class Alphabets {
     private static String asciiAlphabetWithControlCodes(int asciiFromInclusive, int asciiToExclusive) {
         char[] chars = new char[asciiToExclusive - asciiFromInclusive];
         for (int i = asciiFromInclusive; i < asciiToExclusive; ++i) {
-            chars[i - asciiFromInclusive] = i
+            chars[i - asciiFromInclusive] = (char)i
         }
         return String.valueOf(chars);
     }

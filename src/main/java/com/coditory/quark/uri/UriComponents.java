@@ -236,7 +236,7 @@ public final class UriComponents {
     public Map<String, String> getSingleValueQueryParams() {
         return queryParams.entrySet()
                 .stream()
-                .collect(toMap(Map.Entry::getKey, e -> e.getValue().get(0)));
+                .collect(toMap(Map.Entry::getKey, e -> e.getValue().getFirst()));
     }
 
     @Nullable
@@ -256,13 +256,13 @@ public final class UriComponents {
         StringBuilder queryBuilder = new StringBuilder();
         this.queryParams.forEach((name, values) -> {
             if (values == null || values.isEmpty()) {
-                if (queryBuilder.length() != 0) {
+                if (!queryBuilder.isEmpty()) {
                     queryBuilder.append('&');
                 }
                 queryBuilder.append(QUERY_PARAM.encode(name));
             } else {
                 for (Object value : values) {
-                    if (queryBuilder.length() != 0) {
+                    if (!queryBuilder.isEmpty()) {
                         queryBuilder.append('&');
                     }
                     queryBuilder.append(QUERY_PARAM.encode(name))
@@ -302,7 +302,7 @@ public final class UriComponents {
     @NotNull
     public URL toUrl() {
         try {
-            return new URL(toUriString());
+            return URI.create(toUriString()).toURL();
         } catch (Exception e) {
             throw new IllegalStateException("Could not build URI", e);
         }

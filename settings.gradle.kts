@@ -3,21 +3,20 @@ rootProject.name = "quark-uri"
 includeBuild("build-logic")
 
 plugins {
-    id("com.gradle.enterprise").version("3.12.2")
+    id("com.gradle.develocity") version ("3.18.1")
 }
 
 dependencyResolutionManagement {
+    @Suppress("UnstableApiUsage")
     repositories {
         mavenCentral()
     }
 }
 
-gradleEnterprise {
-    if (!System.getenv("CI").isNullOrEmpty()) {
-        buildScan {
-            publishAlways()
-            termsOfServiceUrl = "https://gradle.com/terms-of-service"
-            termsOfServiceAgree = "yes"
-        }
+develocity {
+    buildScan {
+        publishing.onlyIf { !System.getenv("CI").isNullOrEmpty() }
+        termsOfUseUrl.set("https://gradle.com/help/legal-terms-of-use")
+        termsOfUseAgree.set("yes")
     }
 }

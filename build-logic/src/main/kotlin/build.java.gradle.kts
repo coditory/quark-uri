@@ -18,7 +18,11 @@ tasks.withType<JavaCompile>().configureEach {
 
 // make javadoc less strict to limit noisy logs
 tasks.withType<Javadoc>().configureEach {
-    val sourceSet = project.extensions.getByType<JavaPluginExtension>().sourceSets.getByName("main")
+    val sourceSet =
+        project.extensions
+            .getByType<JavaPluginExtension>()
+            .sourceSets
+            .getByName("main")
     source = sourceSet.allJava
     classpath = sourceSet.compileClasspath
     isFailOnError = false

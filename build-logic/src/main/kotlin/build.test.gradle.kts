@@ -1,4 +1,4 @@
-@file:Suppress("UnstableApiUsage", "HasPlatformType", "UNUSED_VARIABLE")
+@file:Suppress("UnstableApiUsage", "HasPlatformType")
 
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
@@ -45,13 +45,14 @@ tasks.named("check") {
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
     testLogging {
-        events = setOf(
-            TestLogEvent.FAILED,
-            TestLogEvent.STANDARD_ERROR,
-            TestLogEvent.STANDARD_OUT,
-            TestLogEvent.SKIPPED,
-            TestLogEvent.PASSED
-        )
+        events =
+            setOf(
+                TestLogEvent.FAILED,
+                TestLogEvent.STANDARD_ERROR,
+                TestLogEvent.STANDARD_OUT,
+                TestLogEvent.SKIPPED,
+                TestLogEvent.PASSED,
+            )
         exceptionFormat = TestExceptionFormat.FULL
         showExceptions = true
         showCauses = true

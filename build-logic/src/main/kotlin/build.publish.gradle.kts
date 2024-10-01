@@ -12,9 +12,12 @@ plugins {
 // ./gradlew ... -Ppublish
 // ...or with a task
 // ./gradlew ... coverage
-val publishEnabled = (project.hasProperty("publish") && project.properties["publish"] != "false") ||
-    project.gradle.startParameter.taskNames.contains("publishToSonatype") ||
-    project.gradle.startParameter.taskNames.contains("publishToMavenLocal")
+val publishEnabled =
+    (project.hasProperty("publish") && project.properties["publish"] != "false") ||
+        project.gradle.startParameter.taskNames
+            .contains("publishToSonatype") ||
+        project.gradle.startParameter.taskNames
+            .contains("publishToMavenLocal")
 
 java {
     if (publishEnabled) {
@@ -69,7 +72,10 @@ publishing {
     }
 }
 
-if (publishEnabled && !project.gradle.startParameter.taskNames.contains("publishToMavenLocal")) {
+if (publishEnabled &&
+    !project.gradle.startParameter.taskNames
+        .contains("publishToMavenLocal")
+) {
     val signingKey: String? = System.getenv("SIGNING_KEY")
     val signingPwd: String? = System.getenv("SIGNING_PASSWORD")
     if (signingKey.isNullOrBlank() || signingPwd.isNullOrBlank()) {
