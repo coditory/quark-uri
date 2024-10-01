@@ -1,4 +1,5 @@
 plugins {
+    id("build.version")
     id("build.java")
     id("build.test")
     id("build.coverage")
