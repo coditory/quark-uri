@@ -5,6 +5,6 @@
 
 ## Checklist
 - [ ] I have tested that there is no similar [pull request](https://github.com/coditory/quark-uri/pulls) already submitted
-- [ ] I have read [contributing.md](https://github.com/coditory/quark-uri/blob/master/.github/CONTRIBUTING.md) and applied to the rules
+- [ ] I have read [CONTRIBUTING.md](https://github.com/coditory/quark-uri/blob/master/.github/CONTRIBUTING.md) and applied to the rules
 - [ ] I have unit tested code changes and performed a self-review
 - [ ] I have [tested plugin change locally](https://github.com/coditory/quark-uri/blob/master/.github/CONTRIBUTING.md#validate-changes-locally) on a sample project
