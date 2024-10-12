@@ -66,16 +66,19 @@ jobs:
           override_branch: ${{ github.event.workflow_run.head_branch }}
           override_build: ${{ github.event.workflow_run.id }}
           disable_search: true
-          files: build/reports/kover/report.xml
+          files: build/reports/jacoco/coverage/coverage.xml
 
       - name: Publish Snapshot
         if: |
           steps.skipper.outputs.should_skip != 'true'
-          && env.GPG_PRIVATE_KEY != ''
+          && env.SIGNING_KEY != ''
           && github.event_name == 'push'
           && (github.ref_name == github.event.repository.default_branch || (startsWith(github.ref_name, 'v') && endsWith(github.ref_name, '.x.x')))
         env:
-          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          SIGNING_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          SIGNING_PASSWORD: ${{ secrets.GPG_PASSPHRASE }}
+          NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
+          NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
         # Publishing to maven central sometimes fails
         continue-on-error: true
         run: |

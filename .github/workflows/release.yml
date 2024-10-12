@@ -162,6 +162,10 @@ jobs:
         if: inputs.snapshot == true
         env:
           NEXT_VERSION: ${{ steps.versions.outputs.next_version }}
+          SIGNING_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          SIGNING_PASSWORD: ${{ secrets.GPG_PASSPHRASE }}
+          NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
+          NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
         run: |
           echo "Simulating snapshot publish to maven central..."
           echo "### Published snapshot version $NEXT_VERSION 🚀" >> $GITHUB_STEP_SUMMARY
@@ -171,6 +175,10 @@ jobs:
         if: inputs.snapshot == false
         env:
           NEXT_VERSION: ${{ steps.versions.outputs.next_version }}
+          SIGNING_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          SIGNING_PASSWORD: ${{ secrets.GPG_PASSPHRASE }}
+          NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
+          NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
         run: |
           ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository -Pversion=$NEXT_VERSION
           echo "### Published release version $NEXT_VERSION 🚀" >> $GITHUB_STEP_SUMMARY
