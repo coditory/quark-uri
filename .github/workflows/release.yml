@@ -167,8 +167,8 @@ jobs:
           OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
         run: |
-          echo "Simulating snapshot publish to maven central..."
-          echo "### Published snapshot version $NEXT_VERSION 🚀" >> $GITHUB_STEP_SUMMARY
+          ./gradlew publishToSonatype -Pversion="${NEXT_VERSION}"
+          echo "### Published snapshot version $NEXT_VERSION 🚀" | tee -a $GITHUB_STEP_SUMMARY
 
       - name: Publish Release to Maven Central
         id: publish
@@ -182,7 +182,7 @@ jobs:
           OSSRH_STAGING_PROFILE_ID: ${{ secrets.OSSRH_STAGING_PROFILE_ID }}
         run: |
           ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository -Pversion=$NEXT_VERSION
-          echo "### Published release version $NEXT_VERSION 🚀" >> $GITHUB_STEP_SUMMARY
+          echo "### Published release version $NEXT_VERSION 🚀" | tee -a $GITHUB_STEP_SUMMARY
 
       - name: Revert version commit on failure
         if: failure() && steps.publish.conclusion == 'failure'
@@ -224,7 +224,7 @@ jobs:
               git push origin "$NEW_BRANCH"
               git checkout "$BRANCH"
               echo "Created branch for new major version: $NEW_BRANCH"
-              echo "### Created branch for previous major version $NEW_BRANCH  🚀" >> $GITHUB_STEP_SUMMARY
+              echo "### Created branch for previous major version $NEW_BRANCH  🚀" | tee -a $GITHUB_STEP_SUMMARY
             fi
           else
             echo "Next and prev major versions are the same: $NEXT_MAJOR"

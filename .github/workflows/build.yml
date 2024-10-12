@@ -89,4 +89,4 @@ jobs:
           declare -r PATCH="$(echo "$VERSION" | cut -d. -f3)"
           declare NEXT_VERSION="$MAJOR.$MINOR.$(( PATCH + 1 ))-SNAPSHOT"
           ./gradlew publishToSonatype -Pversion="${NEXT_VERSION}"
-          echo "### Published snapshot version $NEXT_VERSION 🚀" >> $GITHUB_STEP_SUMMARY
+          echo "### Published snapshot version $NEXT_VERSION 🚀" | tee -a $GITHUB_STEP_SUMMARY
