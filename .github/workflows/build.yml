@@ -85,5 +85,5 @@ jobs:
           declare -r MINOR="$(echo "$VERSION" | cut -d. -f2)"
           declare -r PATCH="$(echo "$VERSION" | cut -d. -f3)"
           declare NEXT_VERSION="$MAJOR.$MINOR.$(( PATCH + 1 ))-SNAPSHOT"
-          echo "Simulating snapshot publish to maven central with version: $NEXT_VERSION"
-          echo "### Published Snapshot version $NEXT_VERSION 🚀" >> $GITHUB_STEP_SUMMARY
+          ./gradlew publishToSonatype -Pversion="${NEXT_VERSION}"
+          echo "### Published snapshot version $NEXT_VERSION 🚀" >> $GITHUB_STEP_SUMMARY

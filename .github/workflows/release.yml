@@ -172,7 +172,7 @@ jobs:
         env:
           NEXT_VERSION: ${{ steps.versions.outputs.next_version }}
         run: |
-          echo "Simulating release publish to maven central..."
+          ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository -Pversion=$NEXT_VERSION
           echo "### Published release version $NEXT_VERSION 🚀" >> $GITHUB_STEP_SUMMARY
 
       - name: Revert version commit on failure
