@@ -1,4 +1,6 @@
-# Contributing
+# Development
+
+This is a development focused supplement to [CONTRIBUTING.md](https://github.com/coditory/.github/blob/main/CONTRIBUTING.md).
 
 ## Commit messages
 Before writing a commit message read [this article](https://chris.beams.io/posts/git-commit/).
@@ -14,15 +16,11 @@ Please use the `Spec.groovy` suffix on new test classes.
 Pull requests that lower test coverage will not be merged.
 Test coverage metric will be visible on GitHub Pull request page.
 It can be also generated in IDE or via command line with `./gradlew build coverage`
-- check html report in `build/report/jacoco/coverage/html`.
+(generated report is in `build/report/jacoco/coverage/html`).
 
 ## Formatting
 There are no enforced code style rules for Java and Groovy sources.
 Just use IntelliJ code styles from "Project scheme" (`.idea/codeStyles`).
-
-Kotlin codestyle is enforced by [Ktlint](https://pinterest.github.io/ktlint/) and configured in `.editorconfig`.
-You can validate Kotlin code style in command line with
-`./gradlew ktlintCheck`.
 
 ## Validate changes locally
 Before submitting a pull request test your changes locally on a sample project.

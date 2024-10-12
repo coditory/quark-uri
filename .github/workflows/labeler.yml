@@ -1,9 +1,9 @@
-name: Labeler
+name: "Labeler"
 
 on: [pull_request_target]
 
 jobs:
-  labeler:
+  label-pr:
     runs-on: ubuntu-latest
     permissions:
       contents: read
