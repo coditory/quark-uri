@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "com.coditory.quark"
-description = "Quark internationalization library"
+description = "Quark URI manipulation library"
 
 publishing {
     publications.create<MavenPublication>("jvm") {
