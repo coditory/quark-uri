@@ -12,11 +12,11 @@ on:
         type: choice
         description: Version section to increment
         options:
-          - PATCH
-          - MINOR
-          - MAJOR
+          - patch
+          - minor
+          - major
         required: true
-        default: PATCH
+        default: patch
       version:
         type: string
         description: |
@@ -32,12 +32,6 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      # Just for debug
-      - name: Dump GitHub context
-        env:
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-        run: echo "$GITHUB_CONTEXT"
-
       - name: Setup bot token
         uses: actions/create-github-app-token@v1
         id: bot
@@ -67,6 +61,7 @@ jobs:
       - name: Validate build succeeded
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BUILD_WORKFLOW: Build
         run: |
           if git tag --points-at HEAD | grep -Eq "^v[0-9]+.[0-9]+.[0-9]+$"; then
             echo "Last commit is a release commit."
@@ -75,70 +70,29 @@ jobs:
           declare -r SHA="$(git rev-parse HEAD)"
           declare -r RUNS="$(gh api \
             -H "Accept: application/vnd.github+json" \
-            /repos/${{ github.repository }}/actions/runs?head_sha=$SHA)"
-          declare -r BUILD_SUCCESS="$(echo "$RUNS" | jq -r 'limit(1; .workflow_runs[] | select(.name == "Build" and .conclusion == "success")) | .conclusion')"
+            /repos/$GITHUB_REPOSITORY/actions/runs?head_sha=$SHA)"
+          declare -r BUILD_SUCCESS="$(echo "$RUNS" | jq -r "limit(1; .workflow_runs[] | select(.name == \"$BUILD_WORKFLOW\" and .conclusion == \"success\")) | .conclusion")"
           if [ -z "$BUILD_SUCCESS"  ]; then
-            echo "Commit did not pass Build. Stopping release!"
+            echo "Commit did not pass $BUILD_WORKFLOW. Stopping release!"
             exit 1
           fi
-          echo "Last commit passed build."
+          echo "Last commit passed $BUILD_WORKFLOW."
           exit 0
 
-      - name: Get versions
-        id: versions
-        env:
-          BRANCH: ${{ inputs.branch }}
-          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
-          SNAPSHOT: ${{ inputs.snapshot }}
-          MANUAL_VERSION: ${{ inputs.version }}
-          INCREMENT_SECTION: ${{ inputs.section }}
-        run: |
-          declare -r GIT_VERSION="$(git tag -l 'v[0-9]*' --merged HEAD --sort=-v:refname | grep -E "^v[0-9]+.[0-9]+.[0-9]+$" | head -n 1 | cut -c2-)"
-          declare -r VERSION=${GIT_VERSION:-0.0.0}
-          declare -r MAJOR="$(echo "$VERSION" | cut -d. -f1)"
-          declare -r MINOR="$(echo "$VERSION" | cut -d. -f2)"
-          declare -r PATCH="$(echo "$VERSION" | cut -d. -f3)"
-          declare NEXT_VERSION=""
-          if [ -n "$MANUAL_VERSION" ]; then
-            if [[ "$MANUAL_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.+)?$ ]]; then
-              NEXT_VERSION="$MANUAL_VERSION"
-            else
-              echo "Invalid manual version: $MANUAL_VERSION" >&2
-              echo "Expected versions formats: 1.2.3, 1.2.3-some-suffix" >&2
-              exit 1
-            fi
-          elif [ "$INCREMENT_SECTION" == "PATCH" ]; then
-            NEXT_VERSION="$MAJOR.$MINOR.$(( PATCH + 1 ))"
-          elif [ "$INCREMENT_SECTION" == "MINOR" ]; then
-            NEXT_VERSION="$MAJOR.$(( MINOR + 1 )).0"
-          elif [ "$INCREMENT_SECTION" == "MAJOR" ]; then
-            NEXT_VERSION="$(( MAJOR + 1 )).0.0"
-          else
-            echo "Unrecognized option: $INCREMENT_SECTION" >&2
-            exit 1
-          fi
-          if [ "$BRANCH" != "$DEFAULT_BRANCH" ] && [ "$(echo "$NEXT_VERSION" | cut -d. -f1)" != "$MAJOR" ]; then
-            echo "New major version can be created only from the $DEFAULT_BRANCH branch" >&2
-            exit 1
-          fi
-          if [ "$SNAPSHOT" == "false" ] && [[ "$NEXT_VERSION" =~ ^.*-SNAPSHOT$ ]]; then
-            echo "Invalid manual version: $MANUAL_VERSION" >&2
-            echo "Manual version with SNAPSHOT suffix should be published to snapshot repository" >&2
-            return 1
-          fi
-          if [ "$SNAPSHOT" == "true" ] && ! [[ "$NEXT_VERSION" =~ ^.*-SNAPSHOT$ ]]; then
-            NEXT_VERSION="${NEXT_VERSION}-SNAPSHOT"
-          fi
-          echo -e "VERSION: $VERSION\nNEXT_VERSION: $NEXT_VERSION"
-          echo "next_version=$NEXT_VERSION" >> $GITHUB_OUTPUT
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+      - name: Version
+        id: version
+        uses: coditory/version-action@v1
+        with:
+          snapshot: ${{ inputs.snapshot }}
+          manual-version: ${{ inputs.version }}
+          increment-section: ${{ inputs.section }}
 
       - name: Update version in files
         id: commit
         if: inputs.snapshot == false
         env:
-          PREV_VERSION: ${{ steps.versions.outputs.version }}
-          NEXT_VERSION: ${{ steps.versions.outputs.next_version }}
+          PREV_VERSION: ${{ steps.version.outputs.version }}
+          NEXT_VERSION: ${{ steps.version.outputs.next_version }}
         run: |
           declare -r ESC_PREV_VERSION="${PREV_VERSION//./\\.}"
           echo "Changing: $PREV_VERSION -> $NEXT_VERSION"
@@ -160,7 +114,7 @@ jobs:
       - name: Publish Snapshot to Maven Central
         if: inputs.snapshot == true
         env:
-          NEXT_VERSION: ${{ steps.versions.outputs.next_version }}
+          NEXT_VERSION: ${{ steps.version.outputs.next_version }}
           SIGNING_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
           SIGNING_PASSWORD: ${{ secrets.GPG_PASSPHRASE }}
           OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
@@ -173,7 +127,7 @@ jobs:
         id: publish
         if: inputs.snapshot == false
         env:
-          NEXT_VERSION: ${{ steps.versions.outputs.next_version }}
+          NEXT_VERSION: ${{ steps.version.outputs.next_version }}
           SIGNING_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
           SIGNING_PASSWORD: ${{ secrets.GPG_PASSPHRASE }}
           OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
@@ -197,7 +151,7 @@ jobs:
       - name: Create release tag
         if: inputs.snapshot == false
         env:
-          NEXT_VERSION: ${{ steps.versions.outputs.next_version }}
+          NEXT_VERSION: ${{ steps.version.outputs.next_version }}
         run: |
           declare -r TAG_NAME="v$NEXT_VERSION"
           git tag "$TAG_NAME"
@@ -209,8 +163,8 @@ jobs:
         if: inputs.snapshot == false
         env:
           BRANCH: ${{ inputs.branch }}
-          NEXT_VERSION: ${{ steps.versions.outputs.next_version }}
-          PREV_VERSION: ${{ steps.versions.outputs.version }}
+          NEXT_VERSION: ${{ steps.version.outputs.next_version }}
+          PREV_VERSION: ${{ steps.version.outputs.version }}
         run: |
           declare -r NEXT_MAJOR="$(echo "$NEXT_VERSION" | cut -d. -f1)"
           declare -r PREV_MAJOR="$(echo "$PREV_VERSION" | cut -d. -f1)"
@@ -234,8 +188,8 @@ jobs:
         if: inputs.snapshot == false
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PREV_VERSION: ${{ steps.versions.outputs.version }}
-          NEXT_VERSION: ${{ steps.versions.outputs.next_version }}
+          PREV_VERSION: ${{ steps.version.outputs.version }}
+          NEXT_VERSION: ${{ steps.version.outputs.next_version }}
         run: |
           declare -r PREV_TAG_NAME="$([ "$PREV_VERSION" == "0.0.0" ] && echo "" || echo "v$PREV_VERSION")"
           declare -r NOTES="$(gh api \
@@ -258,5 +212,5 @@ jobs:
           allowUpdates: true
           body: ${{ steps.notes.outputs.notes }}
           draft: ${{ inputs.publish == 'SKIP' }}
-          tag: v${{ steps.versions.outputs.next_version }}
+          tag: v${{ steps.version.outputs.next_version }}
           token: ${{ secrets.GITHUB_TOKEN }}

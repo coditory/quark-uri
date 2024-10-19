@@ -21,24 +21,18 @@ jobs:
           # Required to deduce version from git tags
           fetch-depth: 0
 
-      - name: Skip build
+      - name: Skip build if not needed
         id: skipper
-        run: |
-          if [ "${{ github.event_name }}" == 'pull_request' ]; then
-            CHANGED_FILES="$(git diff --name-only -r HEAD^1 HEAD)"
-          else
-            CHANGED_FILES="$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }})"
-          fi
-          NOT_SKIPPED="$(echo "$CHANGED_FILES" \
-            | grep -v -e "^[^/]*\.md" -e "^.github/.*\.md" -e "^.gitignore" -e "^docs/.*" -e "^gradle.properties" \
-            || echo "")"
-          echo -e ">>> Changed files:\n$CHANGED_FILES"
-          echo -e ">>> Not skipped files:\n$NOT_SKIPPED"
-          if [ -z "$NOT_SKIPPED" ]; then
-            echo "skip=true" >> $GITHUB_OUTPUT
-          else
-            echo "skip=false" >> $GITHUB_OUTPUT
-          fi
+        uses: coditory/skip-action@v1
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          skip-files: |-
+            ^.gitignore
+            ^[^/]*\.md
+            ^.github/.*\.md
+            ^docs/.*
+            ^gradle.properties
 
       - name: Setup JDK
         uses: actions/setup-java@v4
@@ -79,25 +73,26 @@ jobs:
           disable_search: true
           files: build/reports/jacoco/coverage/coverage.xml
 
-      - name: Publish Snapshot
+      - name: Version
+        id: version
         if: |
           steps.skipper.outputs.skip != 'true'
-          && env.SIGNING_KEY != ''
           && github.event_name == 'push'
           && (github.ref_name == github.event.repository.default_branch || (startsWith(github.ref_name, 'v') && endsWith(github.ref_name, '.x.x')))
+        uses: coditory/version-action@v1
+        with:
+          snapshot: true
+
+      - name: Publish Snapshot
+        if: steps.version.outcome == 'success'
+        # Publishing to maven central sometimes fails
+        continue-on-error: true
         env:
+          NEXT_VERSION: ${{ steps.version.outputs.next_version }}
           SIGNING_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
           SIGNING_PASSWORD: ${{ secrets.GPG_PASSPHRASE }}
           OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
-        # Publishing to maven central sometimes fails
-        continue-on-error: true
         run: |
-          declare -r GIT_VERSION="$(git tag -l 'v[0-9]*' --merged HEAD --sort=-v:refname | grep -E "^v[0-9]+.[0-9]+.[0-9]+$" | head -n 1 | cut -c2-)"
-          declare -r VERSION=${GIT_VERSION:-0.0.0}
-          declare -r MAJOR="$(echo "$VERSION" | cut -d. -f1)"
-          declare -r MINOR="$(echo "$VERSION" | cut -d. -f2)"
-          declare -r PATCH="$(echo "$VERSION" | cut -d. -f3)"
-          declare NEXT_VERSION="$MAJOR.$MINOR.$(( PATCH + 1 ))-SNAPSHOT"
           ./gradlew publishToSonatype -Pversion="${NEXT_VERSION}"
           echo "### Published snapshot version $NEXT_VERSION 🚀" | tee -a $GITHUB_STEP_SUMMARY
