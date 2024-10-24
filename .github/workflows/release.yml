@@ -54,5 +54,6 @@ jobs:
       section: ${{ inputs.section }}
       version: ${{ inputs.version }}
       snapshot: ${{ inputs.snapshot }}
+      java-version: 21
       release-command: ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository -Pversion=%NEXT_VERSION%
       snapshot-command: ./gradlew publishToSonatype -Pversion=%NEXT_VERSION%
