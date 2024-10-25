@@ -23,7 +23,7 @@ on:
         required: false
       snapshot:
         type: boolean
-        description: Use snapshot repository
+        description: Snapshot version
         required: true
         default: false
   # Called from release-auto
