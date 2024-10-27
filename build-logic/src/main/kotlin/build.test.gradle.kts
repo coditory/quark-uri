@@ -6,8 +6,6 @@ plugins {
     id("groovy")
 }
 
-val libs = extensions.getByType(org.gradle.accessors.dm.LibrariesForLibs::class)
-
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
     testLogging {

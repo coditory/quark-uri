@@ -28,9 +28,12 @@ updates:
       # merged automatically
       dev-dependencies:
         patterns:
-          - "io.kotest*"
-          - "*-test"
-          - "*assert"
+          # gradle plugins
+          - "*kotlin-gradle-plugin"
+          - "*publish-plugin"
+          # test dependencies
+          - "org.spockframework*"
+          - "ch.qos.logback*"
       # merged and released automatically
       prod-dependencies:
         update-types:
