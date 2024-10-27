@@ -29,7 +29,6 @@ jobs:
     secrets: inherit
     with:
       security-updates-only: ${{ inputs.security-updates-only || github.event_name == 'workflow_run' }}
-      debug: true
 
   release:
     uses: ./.github/workflows/release.yml
