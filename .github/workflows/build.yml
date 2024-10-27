@@ -5,13 +5,11 @@ on:
   pull_request:
   push:
     branches-ignore:
-      - 'dependabot/**'
       - 'gh-pages'
 
 jobs:
   build:
     uses: coditory/jvm-workflows/.github/workflows/build.yml@v1
-    secrets: inherit
     with:
       java-version: 21
       build-command: ./gradlew build coverage

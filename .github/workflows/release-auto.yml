@@ -35,14 +35,3 @@ jobs:
     secrets: inherit
     needs: check
     if: needs.check.outputs.release == 'true'
-
-  snapshot:
-    uses: ./.github/workflows/release.yml
-    needs: check
-    secrets: inherit
-    if: |
-      (inputs.consider-snapshot || github.event_name == 'workflow_run')
-      && needs.check.outputs.release != 'true'
-      && needs.check.outputs.skip-code != 'no-changes'
-    with:
-      snapshot: true
