@@ -2,6 +2,23 @@ name: Release Auto
 
 on:
   workflow_dispatch:
+    inputs:
+      security-updates-only:
+        description: "Security updates only"
+        type: boolean
+        required: false
+        default: false
+      consider-snapshot:
+        description: "Consider snapshot"
+        type: boolean
+        required: false
+        default: false
+  workflow_run:
+    workflows: [ "Build" ]
+    types: [ completed ]
+    branches:
+      - main
+      - v*x.x
   schedule:
     # at 5:30 UTC every other month
     - cron: "30 5 1 */2 *"
@@ -10,9 +27,23 @@ jobs:
   check:
     uses: coditory/workflows/.github/workflows/release-auto-check.yml@v1
     secrets: inherit
+    with:
+      security-updates-only: ${{ inputs.security-updates-only || github.event_name == 'workflow_run' }}
+      debug: true
 
-  auto-release:
+  release:
     uses: ./.github/workflows/release.yml
     secrets: inherit
-    if: needs.check.outputs.release == 'true'
     needs: check
+    if: needs.check.outputs.release == 'true'
+
+  snapshot:
+    uses: ./.github/workflows/release.yml
+    needs: check
+    secrets: inherit
+    if: |
+      (inputs.consider-snapshot || github.event_name == 'workflow_run')
+      && needs.check.outputs.release != 'true'
+      && needs.check.outputs.skip-code != 'no-changes'
+    with:
+      snapshot: true
