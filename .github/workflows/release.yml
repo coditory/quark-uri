@@ -57,3 +57,4 @@ jobs:
       java-version: 21
       release-command: ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository -Pversion=$NEXT_VERSION
       snapshot-command: ./gradlew publishToSonatype -Pversion=$NEXT_VERSION
+      version-command: ./gradlew version --quiet --no-scan

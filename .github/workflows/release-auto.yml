@@ -1,4 +1,4 @@
-name: Release Auto
+name: Auto Release
 
 on:
   workflow_dispatch:
@@ -14,8 +14,8 @@ on:
         required: false
         default: false
   workflow_run:
-    workflows: [ "Build" ]
-    types: [ completed ]
+    workflows: ["Build"]
+    types: [completed]
     branches:
       - main
       - v*x.x
@@ -25,8 +25,11 @@ on:
 
 jobs:
   check:
-    uses: coditory/workflows/.github/workflows/release-auto-check.yml@v1
+    uses: coditory/workflows/.github/workflows/release-check.yml@v1
     secrets: inherit
+    if: |
+      github.event_name != 'workflow_run'
+      || !contains(github.event.workflow_run.head_commit.message, '[ci-skip-build]')
     with:
       security-updates-only: ${{ inputs.security-updates-only || github.event_name == 'workflow_run' }}
 
@@ -38,8 +41,8 @@ jobs:
 
   snapshot:
     uses: ./.github/workflows/release.yml
-    needs: check
     secrets: inherit
+    needs: check
     if: |
       (inputs.consider-snapshot || github.event_name == 'workflow_run')
       && needs.check.outputs.release != 'true'
