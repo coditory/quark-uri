@@ -6,7 +6,7 @@ import spock.lang.Unroll
 class PortsSpec extends Specification {
     def "should find two available ports"() {
         when:
-            int port = Ports.nextAvailablePort()
+            int port = Ports.getNextAvailable()
         then:
             port >= 0 && port < 65535
     }

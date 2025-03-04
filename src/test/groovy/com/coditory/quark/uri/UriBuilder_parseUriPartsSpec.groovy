@@ -25,7 +25,7 @@ class UriBuilder_parseUriPartsSpec extends Specification {
             UriComponents result = UriComponents.fromUri("https://coditory.com/foo+bar?a+b=c+d#x+y")
         then:
             result.pathSegments == ["foo+bar"]
-            result.queryParams == ["a b": ["c d"]]
+            result.queryMultiParams == ["a b": ["c d"]]
             result.fragment == "x+y"
     }
 
@@ -78,10 +78,10 @@ class UriBuilder_parseUriPartsSpec extends Specification {
         when:
             UriComponents result = UriComponents.fromUri("https://coditory.com" + query)
         then:
-            result.queryParams == expected
+            result.queryMultiParams == expected
 
         and:
-            result.singleValueQueryParams == expectedSingleValue
+            result.queryParams == expectedSingleValue
 
         where:
             query          | expected             | expectedSingleValue

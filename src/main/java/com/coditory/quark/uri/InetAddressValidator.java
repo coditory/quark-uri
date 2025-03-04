@@ -23,25 +23,25 @@ public final class InetAddressValidator {
     private static final int IPV6_MAX_HEX_GROUPS = 8;
     private static final int IPV6_MAX_HEX_DIGITS_PER_GROUP = 4;
 
-    public static void validateInetAddress(@Nullable String inetAddress) {
+    public static void validateInetAddress(String inetAddress) {
         if (!isValidInetV4Address(inetAddress) && !isValidInetV6Address(inetAddress)) {
             throw new IllegalArgumentException("Expected valid ip address. Got: " + inetAddress);
         }
     }
 
-    public static void validateInetV4Address(@Nullable String inetAddress) {
+    public static void validateInetV4Address(String inetAddress) {
         if (!isValidInetV4Address(inetAddress)) {
             throw new IllegalArgumentException("Expected valid ip v4 address. Got: " + inetAddress);
         }
     }
 
-    public static void validateInetV6Address(@Nullable String inetAddress) {
+    public static void validateInetV6Address(String inetAddress) {
         if (!isValidInetV6Address(inetAddress)) {
             throw new IllegalArgumentException("Expected valid ip v6 address. Got: " + inetAddress);
         }
     }
 
-    public static boolean isValidInetAddress(@Nullable String inetAddress) {
+    public static boolean isValidInetAddress(String inetAddress) {
         return isValidInetV4Address(inetAddress) || isValidInetV6Address(inetAddress);
     }
 
@@ -80,7 +80,7 @@ public final class InetAddressValidator {
         }
     }
 
-    public static boolean isValidInetV6Address(@Nullable String inet6Address) {
+    public static boolean isValidInetV6Address(String inet6Address) {
         if (inet6Address == null || inet6Address.isBlank()) {
             return false;
         }
@@ -122,7 +122,7 @@ public final class InetAddressValidator {
             if (inet6Address.endsWith("::")) {
                 octetList.add("");
             } else if (inet6Address.startsWith("::") && !octetList.isEmpty()) {
-                octetList.remove(0);
+                octetList.removeFirst();
             }
             octets = octetList.toArray(new String[0]);
         }
@@ -133,7 +133,7 @@ public final class InetAddressValidator {
         int emptyOctets = 0; // consecutive empty chunks
         for (int index = 0; index < octets.length; index++) {
             String octet = octets[index];
-            if (octet.length() == 0) {
+            if (octet.isEmpty()) {
                 emptyOctets++;
                 if (emptyOctets > 1) {
                     return false;

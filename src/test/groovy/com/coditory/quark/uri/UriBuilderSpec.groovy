@@ -18,9 +18,21 @@ class UriBuilderSpec extends Specification {
                     .addQueryParam("b", "b1")
                     .putQueryParam("b", "b2")
                     .setFragment("x")
-                    .buildUriString()
+                    .toUriString()
         then:
             result == "https://john.doe@coditory.com:8081/test/test2/test3?a=a1&a=a2&b=b2#x"
+    }
+
+    def "should build uri consisting of query string only"() {
+        when:
+            String result = new UriBuilder()
+                    .addQueryParam("a", "a1")
+                    .addQueryParam("a", "a2")
+                    .addQueryParam("b", "b1")
+                    .putQueryParam("b", "b2")
+                    .toUriString()
+        then:
+            result == "?a=a1&a=a2&b=b2"
     }
 
     def "should normalize path slashes"() {
@@ -28,7 +40,7 @@ class UriBuilderSpec extends Specification {
             String result = UriBuilder.fromUri("https://coditory.com/abc//def/")
                     .addSubPath("//ghi////jkl//")
                     .addPathSegment("mno/pqr")
-                    .buildUriString()
+                    .toUriString()
         then:
             result == "https://coditory.com/abc/def/ghi/jkl/mno%2Fpqr"
     }
@@ -40,7 +52,7 @@ class UriBuilderSpec extends Specification {
                     .setFragment("frag ment")
                     .addQueryParam("f oo", "b ar")
                     .addQueryParam("x", "y+z")
-                    .buildUriString()
+                    .toUriString()
         then:
             result == "https://coditory.com/a+bc/d%20ef/x%20y%20?f%20oo=b%20ar&x=y%2Bz#frag%20ment"
     }
@@ -55,7 +67,7 @@ class UriBuilderSpec extends Specification {
                     .setPath("/abc")
                     .setQueryParams(w: "W")
                     .setFragment("y")
-                    .buildUriString()
+                    .toUriString()
         then:
             result == "http://coditory.xyz/abc?w=W#y"
     }
@@ -67,7 +79,7 @@ class UriBuilderSpec extends Specification {
         when:
             modifier(builder)
         then:
-            builder.buildUriString() == uri
+            builder.toUriString() == uri
         where:
             field               | modifier                                          || uri
             "scheme"            | { UriBuilder b -> b.removeScheme() }              || "john.doe@coditory.com:8081/test/test2/test3?a=a1&a=a2&b=b2#x"
@@ -84,14 +96,14 @@ class UriBuilderSpec extends Specification {
         when:
             UriBuilder.fromUri("https://john.doe@coditory.com/test/test2/test3?a=a1&a=a2&b=b2#x")
                     .removeHost()
-                    .buildUriComponents()
+                    .toUriComponents()
         then:
             InvalidUriException e = thrown(InvalidUriException)
             e.message == "URI with user info must include host"
         when:
             UriBuilder.fromUri("https://coditory.com:8008/test/test2/test3?a=a1&a=a2&b=b2#x")
                     .removeHost()
-                    .buildUriComponents()
+                    .toUriComponents()
         then:
             e = thrown(InvalidUriException)
             e.message == "URI with port must include host"
@@ -102,7 +114,7 @@ class UriBuilderSpec extends Specification {
             UriBuilder first = UriBuilder.fromUri("https://coditory.com/abc")
             UriBuilder second = first.copy().addQueryParam("a", "X")
         then:
-            first.buildUriString() == "https://coditory.com/abc"
-            second.buildUriString() == "https://coditory.com/abc?a=X"
+            first.toUriString() == "https://coditory.com/abc"
+            second.toUriString() == "https://coditory.com/abc?a=X"
     }
 }

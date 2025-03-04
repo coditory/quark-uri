@@ -29,11 +29,11 @@ class UriComponentsParser {
                     "(//(" + USERINFO_PATTERN + "@)?" + HOST_PATTERN + "(:" + PORT_PATTERN + ")?" + ")?" +
                     PATH_PATTERN + "(\\?" + QUERY_PATTERN + ")?" + "(#" + LAST_PATTERN + ")?");
 
-    static UriBuilder parseHttpUrl(String uri) {
+    static UriBuilder parseUrl(String uri) {
         expectNonNull(uri, "uri");
         try {
             UriBuilder builder = UriComponentsParser.parseUri(uri);
-            UriComponents components = builder.buildUriComponents();
+            UriComponents components = builder.toUriComponents();
             if (!components.isHttpUrl()) {
                 throw new InvalidHttpUrlException("Invalid http url: \"" + uri + "\"");
             }
@@ -47,13 +47,13 @@ class UriComponentsParser {
         }
     }
 
-    static UriBuilder parseHttpUrlOrNull(String uri) {
+    static UriBuilder parseUrlOrNull(String uri) {
         expectNonNull(uri, "uri");
         UriBuilder builder = UriComponentsParser.parseUriOrNull(uri);
         if (builder == null) {
             return null;
         }
-        UriComponents components = builder.buildUriComponents();
+        UriComponents components = builder.toUriComponents();
         if (!components.isHttpUrl()) {
             return null;
         }
@@ -130,6 +130,7 @@ class UriComponentsParser {
 
     static Map<String, List<String>> parseQuery(String query) {
         expectNonNull(query, "query");
+        query = query.startsWith("?") ? query.substring(1) : query;
         Matcher matcher = QUERY_PARAM_PATTERN.matcher(query);
         UriRfc.QUERY.checkValidEncoded(query);
         Map<String, List<String>> result = new LinkedHashMap<>();

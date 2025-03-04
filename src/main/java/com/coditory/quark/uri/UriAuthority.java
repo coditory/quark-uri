@@ -21,7 +21,7 @@ public final class UriAuthority {
     }
 
     @NotNull
-    public static UriAuthority of(@Nullable String userInfo, @Nullable String hostname, int port) {
+    public static UriAuthority of(String userInfo, String hostname, int port) {
         if (hostname != null) {
             expectNoWhitespaces(hostname, "hostname");
         }
@@ -43,7 +43,7 @@ public final class UriAuthority {
     private final String hostname;
     private final int port;
 
-    private UriAuthority(@Nullable String userInfo, @Nullable String hostname, int port) {
+    private UriAuthority(String userInfo, String hostname, int port) {
         this.userInfo = userInfo;
         this.hostname = hostname;
         this.port = port;

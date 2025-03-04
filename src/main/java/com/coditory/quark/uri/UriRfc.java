@@ -14,6 +14,7 @@ enum UriRfc {
     PATH_SEGMENT(UriRfcCharacters.PATH_SEGMENT_ALLOWED),
     QUERY(UriRfcCharacters.QUERY_ALLOWED, true),
     QUERY_PARAM(UriRfcCharacters.QUERY_PARAM_ALLOWED, true),
+    QUERY_PARAM_NARROW(UriRfcCharacters.QUERY_PARAM_ALLOWED_NARROW, true),
     FRAGMENT(UriRfcCharacters.FRAGMENT_ALLOWED);
 
     private final BitSet allowed;

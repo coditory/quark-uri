@@ -8,6 +8,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,20 +17,17 @@ import java.util.Objects;
 
 import static com.coditory.quark.uri.Ports.SCHEME_DEFAULT_PORT_NUMBER;
 import static com.coditory.quark.uri.Ports.validatePortNumberOrSchemeDefault;
-import static com.coditory.quark.uri.Preconditions.expectNonBlank;
 import static com.coditory.quark.uri.Preconditions.expectNonNull;
 import static com.coditory.quark.uri.Strings.emptyToNull;
-import static com.coditory.quark.uri.Strings.isNotNullOrBlank;
 import static com.coditory.quark.uri.Strings.isNotNullOrEmpty;
-import static com.coditory.quark.uri.Strings.isNullOrEmpty;
 import static com.coditory.quark.uri.Strings.lowerCase;
 import static com.coditory.quark.uri.UriComponentsParser.parseQuery;
 import static com.coditory.quark.uri.UriRfc.PATH_SEGMENT;
 
 public final class UriBuilder {
     @NotNull
-    public static UriBuilder from(@NotNull UriComponents uriComponents) {
-        expectNonNull(uriComponents, "uriComponents");
+    public static UriBuilder from(UriComponents uriComponents) {
+        if (uriComponents == null) return empty();
         UriBuilder builder = new UriBuilder();
         builder.scheme = uriComponents.getScheme();
         builder.ssp = uriComponents.getSchemeSpecificPart();
@@ -40,20 +39,20 @@ public final class UriBuilder {
             builder.port = uriComponents.getPort();
             builder.setRootPath(uriComponents.isRootPath());
             builder.setPathSegments(uriComponents.getPathSegments());
-            builder.setQueryMultiParams(uriComponents.getQueryParams());
+            builder.setQueryMultiParams(uriComponents.getQueryMultiParams());
         }
         return builder;
     }
 
     @NotNull
-    public static UriBuilder from(@NotNull URI uri) {
-        expectNonNull(uri, "uri");
+    public static UriBuilder from(URI uri) {
+        if (uri == null) return empty();
         return new UriBuilder().setUri(uri);
     }
 
     @NotNull
-    public static UriBuilder from(@NotNull URL url) {
-        expectNonNull(url, "url");
+    public static UriBuilder from(URL url) {
+        if (url == null) return empty();
         URI uri;
         try {
             uri = url.toURI();
@@ -64,16 +63,19 @@ public final class UriBuilder {
     }
 
     @NotNull
-    public static UriBuilder fromUri(@NotNull String uri) {
-        expectNonNull(uri, "uri");
+    public static UriBuilder fromUri(String uri) {
+        if (uri == null) return empty();
         return UriComponentsParser.parseUri(uri);
     }
 
+    @NotNull
+    public static UriBuilder empty() {
+        return new UriBuilder();
+    }
+
     @Nullable
-    public static UriBuilder fromUriOrNull(@Nullable String uri) {
-        if (uri == null) {
-            return null;
-        }
+    public static UriBuilder fromUriOrNull(String uri) {
+        if (uri == null) return null;
         try {
             return fromUri(uri);
         } catch (RuntimeException e) {
@@ -82,18 +84,33 @@ public final class UriBuilder {
     }
 
     @NotNull
-    public static UriBuilder fromHttpUrl(@NotNull String url) {
-        expectNonNull(url, "url");
-        return UriComponentsParser.parseHttpUrl(url);
+    public static UriBuilder fromUrl(String url) {
+        if (url == null) return empty();
+        return UriComponentsParser.parseUrl(url);
     }
 
     @Nullable
-    public static UriBuilder fromHttpUrlOrNull(@Nullable String url) {
-        if (url == null) {
+    public static UriBuilder fromUrlOrNull(String url) {
+        if (url == null) return null;
+        try {
+            return fromUrl(url);
+        } catch (RuntimeException e) {
             return null;
         }
+    }
+
+    @NotNull
+    public static UriBuilder fromQueryString(String query) {
+        if (query == null) return empty();
+        Map<String, List<String>> params = UriComponentsParser.parseQuery(query);
+        return new UriBuilder().setQueryMultiParams(params);
+    }
+
+    @Nullable
+    public static UriBuilder fromQueryStringOrNull(String query) {
+        if (query == null) return null;
         try {
-            return fromHttpUrl(url);
+            return fromQueryString(query);
         } catch (RuntimeException e) {
             return null;
         }
@@ -135,7 +152,7 @@ public final class UriBuilder {
             }
             if (isNotNullOrEmpty(uri.getRawQuery())) {
                 this.queryParams.clear();
-                setQuery(uri.getRawQuery());
+                setQueryString(uri.getRawQuery());
             }
             resetSchemeSpecificPart();
         }
@@ -147,40 +164,44 @@ public final class UriBuilder {
 
     @NotNull
     public UriBuilder copy() {
-        return from(buildUriComponents());
+        return from(toUriComponents());
     }
 
     @NotNull
-    public UriComponents buildUriComponents() {
+    public UriComponents toUriComponents() {
         return this.ssp != null
                 ? UriComponents.buildOpaque(scheme, ssp, fragment)
                 : UriComponents.buildHierarchical(scheme, userInfo, host, port, protocolRelative, rootPath, pathSegments, queryParams, fragment);
     }
 
     @NotNull
-    public URI buildUri() {
-        return buildUriComponents().toUri();
+    public URI toUri() {
+        return toUriComponents().toUri();
     }
 
     @NotNull
-    public String buildUriString() {
-        return buildUriComponents().toUriString();
+    public String toUriString() {
+        return toUriComponents().toUriString();
+    }
+
+    @Override
+    @NotNull
+    public String toString() {
+        return toUriString();
     }
 
     @NotNull
-    public UriBuilder setScheme(@Nullable String scheme) {
-        if (isNotNullOrBlank(scheme)) {
-            if (scheme.equals("//")) {
-                this.scheme = null;
-                this.protocolRelative = true;
-            } else {
-                this.scheme = lowerCase(scheme);
-                this.protocolRelative = false;
-            }
-            resetSchemeSpecificPart();
-        } else {
+    public UriBuilder setScheme(String scheme) {
+        if (scheme == null || scheme.isBlank()) {
             this.scheme = null;
+        } else if (scheme.equals("//")) {
+            this.scheme = null;
+            this.protocolRelative = true;
+        } else {
+            this.scheme = lowerCase(scheme);
+            this.protocolRelative = false;
         }
+        resetSchemeSpecificPart();
         return this;
     }
 
@@ -198,54 +219,57 @@ public final class UriBuilder {
     }
 
     @NotNull
-    public UriBuilder setSchemeSpecificPart(@Nullable String ssp) {
-        if (isNotNullOrBlank(ssp)) {
-            this.ssp = ssp;
-            resetHierarchicalComponents();
-        } else {
+    public UriBuilder setSchemeSpecificPart(String ssp) {
+        if (ssp == null || ssp.isBlank()) {
             this.ssp = null;
+        } else {
+            this.ssp = ssp;
         }
+        resetHierarchicalComponents();
         return this;
     }
 
     @NotNull
     public UriBuilder removeSchemeSpecificPart() {
         this.ssp = null;
+        resetHierarchicalComponents();
         return this;
     }
 
     @NotNull
     public UriBuilder setUserInfo(@Nullable String userInfo) {
-        if (isNotNullOrBlank(userInfo)) {
-            this.userInfo = userInfo;
-            resetSchemeSpecificPart();
-        } else {
+        if (userInfo == null || userInfo.isBlank()) {
             this.userInfo = null;
+        } else {
+            this.userInfo = userInfo;
         }
+        resetSchemeSpecificPart();
         return this;
     }
 
     @NotNull
     public UriBuilder removeUserInfo() {
         this.userInfo = null;
+        resetSchemeSpecificPart();
         return this;
     }
 
     @NotNull
-    public UriBuilder setHost(@Nullable String host) {
-        if (isNotNullOrBlank(host)) {
+    public UriBuilder setHost(String host) {
+        if (host == null || host.isBlank()) {
+            this.host = null;
+        } else {
             this.host = lowerCase(host);
             this.rootPath = true;
-            resetSchemeSpecificPart();
-        } else {
-            this.host = null;
         }
+        resetSchemeSpecificPart();
         return this;
     }
 
     @NotNull
     public UriBuilder removeHost() {
         this.host = null;
+        resetSchemeSpecificPart();
         return this;
     }
 
@@ -266,7 +290,7 @@ public final class UriBuilder {
     }
 
     @NotNull
-    public UriBuilder setPath(@Nullable String path) {
+    public UriBuilder setPath(String path) {
         this.pathSegments.clear();
         this.rootPath = this.host != null;
         addSubPath(path);
@@ -274,19 +298,20 @@ public final class UriBuilder {
     }
 
     @NotNull
-    public UriBuilder addSubPath(@Nullable String subPath) {
-        if (isNotNullOrEmpty(subPath)) {
-            if (this.pathSegments.isEmpty()) {
-                rootPath = subPath.startsWith("/") || this.host != null;
-            }
-            List<String> newSegments = Arrays.stream(subPath.split("/"))
-                    .filter(Strings::isNotNullOrEmpty)
-                    .map(PATH_SEGMENT::validateAndDecode)
-                    .toList();
-            this.pathSegments.addAll(newSegments);
-            if (!newSegments.isEmpty()) {
-                resetSchemeSpecificPart();
-            }
+    public UriBuilder addSubPath(String subPath) {
+        if (subPath == null || subPath.isBlank()) {
+            return this;
+        }
+        if (this.pathSegments.isEmpty()) {
+            rootPath = subPath.startsWith("/") || this.host != null;
+        }
+        List<String> newSegments = Arrays.stream(subPath.split("/"))
+                .filter(Strings::isNotNullOrEmpty)
+                .map(PATH_SEGMENT::validateAndDecode)
+                .toList();
+        this.pathSegments.addAll(newSegments);
+        if (!newSegments.isEmpty()) {
+            resetSchemeSpecificPart();
         }
         return this;
     }
@@ -299,25 +324,24 @@ public final class UriBuilder {
     }
 
     @NotNull
-    public UriBuilder setPathSegments(@NotNull List<String> pathSegments) {
-        expectNonNull(pathSegments, "pathSegments");
+    public UriBuilder setPathSegments(List<String> pathSegments) {
         this.pathSegments.clear();
-        addPathSegments(pathSegments);
+        if (pathSegments != null && !pathSegments.isEmpty()) {
+            addPathSegments(pathSegments);
+        }
         return this;
     }
 
     @NotNull
-    public UriBuilder addPathSegment(@Nullable String pathSegment) {
-        if (isNullOrEmpty(pathSegment)) {
-            return this;
-        }
+    public UriBuilder addPathSegment(String pathSegment) {
+        if (pathSegment == null || pathSegment.isEmpty()) return this;
         addPathSegments(List.of(pathSegment));
         return this;
     }
 
     @NotNull
-    public UriBuilder addPathSegments(@Nullable List<String> pathSegments) {
-        expectNonNull(pathSegments, "pathSegments");
+    public UriBuilder addPathSegments(List<String> pathSegments) {
+        if (pathSegments == null || pathSegments.isEmpty()) return this;
         List<String> filtered = pathSegments.stream()
                 .filter(Strings::isNotNullOrEmpty)
                 .toList();
@@ -329,61 +353,58 @@ public final class UriBuilder {
     }
 
     @NotNull
-    public UriBuilder setQuery(@NotNull String query) {
-        expectNonNull(query, "query");
+    public UriBuilder setQueryString(String query) {
+        if (query == null || query.isBlank()) {
+            this.queryParams.clear();
+            return this;
+        }
         setQueryMultiParams(parseQuery(query));
         return this;
     }
 
     @NotNull
-    public UriBuilder setQueryParams(@NotNull Map<String, String> params) {
-        expectNonNull(params, "params");
+    public UriBuilder setQueryParams(Map<String, String> params) {
         this.queryParams.clear();
+        if (params == null || params.isEmpty()) return this;
         params.forEach(this::putQueryParam);
         return this;
     }
 
     @NotNull
-    public UriBuilder setQueryMultiParams(@NotNull Map<String, List<String>> params) {
-        expectNonNull(params, "params");
+    public UriBuilder setQueryMultiParams(Map<String, List<String>> params) {
         this.queryParams.clear();
+        if (params == null || params.isEmpty()) return this;
+        params.forEach(this::putQueryMultiParam);
+        return this;
+    }
+
+    @NotNull
+    public UriBuilder putQueryParams(Map<String, String> params) {
+        if (params == null || params.isEmpty()) return this;
         params.forEach(this::putQueryParam);
         return this;
     }
 
     @NotNull
-    public UriBuilder putQueryParams(@NotNull Map<String, String> params) {
-        expectNonNull(params, "params");
-        params.entrySet().stream()
-                .filter(e -> isNotNullOrBlank(e.getKey()))
-                .forEach(entry -> putQueryParam(entry.getKey(), entry.getValue()));
+    public UriBuilder putQueryMultiParams(Map<String, List<String>> params) {
+        if (params == null || params.isEmpty()) return this;
+        params.forEach(this::putQueryMultiParam);
         return this;
     }
 
     @NotNull
-    public UriBuilder putQueryMultiParams(@NotNull Map<String, List<String>> params) {
-        expectNonNull(params, "params");
-        params.entrySet().stream()
-                .filter(e -> isNotNullOrBlank(e.getKey()))
-                .filter(e -> e.getValue() != null)
-                .forEach(entry -> putQueryParam(entry.getKey(), entry.getValue()));
-        return this;
-    }
-
-    @NotNull
-    public UriBuilder putQueryParam(@NotNull String name, @NotNull String value) {
-        expectNonBlank(name, "name");
-        expectNonNull(value, "value");
+    public UriBuilder putQueryParam(String name, String value) {
+        if (name == null || name.isBlank()) return this;
+        if (value == null) return this;
         List<String> values = new ArrayList<>();
         values.add(value);
-        return putQueryParam(name, values);
+        return putQueryMultiParam(name, values);
     }
 
     @NotNull
-    public UriBuilder putQueryParam(@NotNull String name, @NotNull Collection<String> values) {
-        expectNonBlank(name, "name");
-        expectNonNull(values, "values");
-        if (values.isEmpty()) {
+    public UriBuilder putQueryMultiParam(String name, Collection<String> values) {
+        if (name == null || name.isBlank()) return this;
+        if (values == null || values.isEmpty()) {
             this.queryParams.remove(name);
         } else {
             this.queryParams.put(name, new ArrayList<>(values));
@@ -393,37 +414,32 @@ public final class UriBuilder {
     }
 
     @NotNull
-    public UriBuilder addQueryParams(@NotNull Map<String, String> params) {
-        expectNonNull(params, "params");
-        params.entrySet().stream()
-                .filter(e -> isNotNullOrBlank(e.getKey()))
-                .forEach(entry -> addQueryParam(entry.getKey(), entry.getValue()));
+    public UriBuilder addQueryParams(Map<String, String> params) {
+        if (params == null || params.isEmpty()) return this;
+        params.forEach(this::addQueryParam);
         resetSchemeSpecificPart();
         return this;
     }
 
     @NotNull
-    public UriBuilder addQueryMultiParams(@NotNull Map<String, List<String>> params) {
-        expectNonNull(params, "params");
-        params.entrySet().stream()
-                .filter(e -> isNotNullOrBlank(e.getKey()))
-                .filter(e -> e.getValue() != null && !e.getValue().isEmpty())
-                .forEach(entry -> addQueryParam(entry.getKey(), entry.getValue()));
+    public UriBuilder addQueryMultiParams(Map<String, List<String>> params) {
+        if (params == null || params.isEmpty()) return this;
+        params.forEach(this::addQueryMultiParam);
         resetSchemeSpecificPart();
         return this;
     }
 
     @NotNull
-    public UriBuilder addQueryParam(@NotNull String name, @NotNull String value) {
-        expectNonBlank(name, "name");
-        expectNonNull(value, "value");
-        return addQueryParam(name, List.of(value));
+    public UriBuilder addQueryParam(String name, String value) {
+        if (name == null || name.isBlank()) return this;
+        if (value == null) return this;
+        return addQueryMultiParam(name, List.of(value));
     }
 
     @NotNull
-    public UriBuilder addQueryParam(@NotNull String name, @NotNull Collection<String> values) {
-        expectNonBlank(name, "name");
-        expectNonNull(values, "values");
+    public UriBuilder addQueryMultiParam(String name, Collection<String> values) {
+        if (name == null || name.isBlank()) return this;
+        if (values == null || values.isEmpty()) return this;
         List<String> noNullValues = values.stream()
                 .filter(Objects::nonNull)
                 .toList();
@@ -448,24 +464,48 @@ public final class UriBuilder {
     }
 
     @NotNull
-    public UriBuilder removeQueryParam(@NotNull String name) {
-        expectNonNull(name, "name");
+    public UriBuilder removeQueryParam(String name) {
+        if (name == null || name.isBlank()) return this;
         this.queryParams.remove(name);
         return this;
     }
 
     @NotNull
-    public UriBuilder removeQueryParam(@NotNull String name, @Nullable String value) {
-        expectNonNull(name, "name");
+    public UriBuilder removeQueryParam(String name, String value) {
+        if (name == null || name.isBlank()) return this;
+        if (value == null) return this;
         List<String> values = this.queryParams.get(name);
-        if (values != null && value != null) {
+        if (values != null) {
             values.remove(value);
         }
         return this;
     }
 
     @NotNull
-    public UriBuilder setFragment(@Nullable String fragment) {
+    public UriBuilder sortQueryParams() {
+        Map<String, List<String>> copy = new HashMap<>(this.queryParams);
+        this.queryParams.clear();
+        copy.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .forEach(e -> this.queryParams.put(e.getKey(), e.getValue()));
+        return this;
+    }
+
+    @NotNull
+    public UriBuilder sortQueryParamValues() {
+        this.queryParams.forEach((key, value) -> Collections.sort(value));
+        return this;
+    }
+
+    @NotNull
+    public UriBuilder sortQueryParamsAndValues() {
+        sortQueryParamValues();
+        sortQueryParams();
+        return this;
+    }
+
+    @NotNull
+    public UriBuilder setFragment(String fragment) {
         this.fragment = emptyToNull(fragment);
         return this;
     }
@@ -489,6 +529,6 @@ public final class UriBuilder {
     }
 
     void validate() {
-        buildUriComponents();
+        toUriComponents();
     }
 }

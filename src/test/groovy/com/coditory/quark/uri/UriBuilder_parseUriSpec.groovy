@@ -19,7 +19,7 @@ class UriBuilder_parseUriSpec extends Specification {
             result.protocolRelative == false
             result.rootPath == true
             result.queryString == "a=a1&a=a2&b=b1"
-            result.queryParams == [
+            result.queryMultiParams == [
                     a: ['a1', 'a2'],
                     b: ['b1']
             ]
@@ -31,7 +31,7 @@ class UriBuilder_parseUriSpec extends Specification {
         when:
             UriComponents result = UriBuilder
                     .fromUri("http://coditory.com/help/test?a=a1&a=a2&b=b1#frag")
-                    .buildUriComponents()
+                    .toUriComponents()
         then:
             result.schemeSpecificPart == null
             result.opaque == false
@@ -44,7 +44,7 @@ class UriBuilder_parseUriSpec extends Specification {
             result.pathSegments == ["help", "test"]
             result.rootPath == true
             result.queryString == "a=a1&a=a2&b=b1"
-            result.queryParams == [
+            result.queryMultiParams == [
                     a: ['a1', 'a2'],
                     b: ['b1']
             ]
@@ -56,7 +56,7 @@ class UriBuilder_parseUriSpec extends Specification {
         when:
             UriComponents result = UriBuilder
                     .fromUri("/help/test?a=a1&a=a2&b=b1#frag")
-                    .buildUriComponents()
+                    .toUriComponents()
         then:
             result.schemeSpecificPart == null
             result.opaque == false
@@ -69,7 +69,7 @@ class UriBuilder_parseUriSpec extends Specification {
             result.pathSegments == ["help", "test"]
             result.rootPath == true
             result.queryString == "a=a1&a=a2&b=b1"
-            result.queryParams == [
+            result.queryMultiParams == [
                     a: ['a1', 'a2'],
                     b: ['b1']
             ]
@@ -81,7 +81,7 @@ class UriBuilder_parseUriSpec extends Specification {
         when:
             UriComponents result = UriBuilder
                     .fromUri("https://coditory.com")
-                    .buildUriComponents()
+                    .toUriComponents()
         then:
             result.schemeSpecificPart == null
             result.opaque == false
@@ -94,7 +94,7 @@ class UriBuilder_parseUriSpec extends Specification {
             result.pathSegments == []
             result.rootPath == true
             result.queryString == null
-            result.queryParams == [:]
+            result.queryMultiParams == [:]
             result.fragment == null
             result.isHttpUrl() == true
     }
@@ -103,7 +103,7 @@ class UriBuilder_parseUriSpec extends Specification {
         when:
             UriComponents result = UriBuilder
                     .fromUri("mailto:%E8%AA%9Edef@yoursite.com?subject=Mail%20from%20Our%20Site#frag%E8%AA%9E")
-                    .buildUriComponents()
+                    .toUriComponents()
         then:
             result.schemeSpecificPart == "語def@yoursite.com?subject=Mail from Our Site"
             result.opaque == true
@@ -116,7 +116,7 @@ class UriBuilder_parseUriSpec extends Specification {
             result.pathSegments == []
             result.rootPath == false
             result.queryString == null
-            result.queryParams == [:]
+            result.queryMultiParams == [:]
             result.fragment == "frag語"
             result.isHttpUrl() == false
     }

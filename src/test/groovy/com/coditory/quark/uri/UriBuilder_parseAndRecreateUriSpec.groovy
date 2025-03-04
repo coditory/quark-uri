@@ -37,7 +37,7 @@ class UriBuilder_parseAndRecreateUriSpec extends Specification {
         when:
             UriBuilder result = UriBuilder.fromUri(uri)
         then:
-            result.buildUriString() == expected
+            result.toUriString() == expected
         where:
             uri                           || expected
             "https://coditory.com//test"  || "https://coditory.com/test"
@@ -50,7 +50,7 @@ class UriBuilder_parseAndRecreateUriSpec extends Specification {
         when:
             UriBuilder result = UriBuilder.fromUri(uri)
         then:
-            result.buildUriString() == expected
+            result.toUriString() == expected
         where:
             uri                                               || expected
             "https://coditory.com/+"                          || "https://coditory.com/+"
@@ -77,9 +77,9 @@ class UriBuilder_parseAndRecreateUriSpec extends Specification {
     }
 
     private void expectEquals(UriBuilder builder, String expected) {
-        String uriString = builder.buildUriString()
+        String uriString = builder.toUriString()
         assert uriString == expected
-        uriString = builder.buildUri().toString()
+        uriString = builder.toUri().toString()
         assert uriString == expected
     }
 }

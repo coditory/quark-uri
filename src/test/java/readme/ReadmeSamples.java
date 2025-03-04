@@ -12,7 +12,7 @@ public class ReadmeSamples {
                 .addQueryParam("a", "Y")
                 .addQueryParam("b", "Y")
                 .addQueryParam("e", "")
-                .buildUriString();
+                .toUriString();
         System.out.println(result);
 
         UriComponents uriComponents = UriBuilder.fromUri("https://coditory.com?w=W&a=A")
@@ -22,13 +22,13 @@ public class ReadmeSamples {
                 .addQueryParam("a", "Y")
                 .addQueryParam("b", "Y")
                 .addQueryParam("e", "")
-                .buildUriComponents();
+                .toUriComponents();
         System.out.println(uriComponents);
 
         result = UriBuilder.fromUri("https://coditory.com?w=W&a=A")
                 .addPathSegment("a b")
                 .addQueryParam("x y", " X Y ")
-                .buildUriString();
+                .toUriString();
         System.out.println(result);
 
         result = UriBuilder.fromUri("https://coditory.com/a+bc/d%20ef/")
@@ -36,12 +36,12 @@ public class ReadmeSamples {
                 .setFragment("frag ment")
                 .addQueryParam("f oo", "b ar")
                 .addQueryParam("x", "y+z")
-                .buildUriString();
+                .toUriString();
         System.out.println(result);
 
-        uriComponents = UriBuilder.fromUri("/abc?a+b=A+B").buildUriComponents();
+        uriComponents = UriBuilder.fromUri("/abc?a+b=A+B").toUriComponents();
         System.out.println(uriComponents);
-        uriComponents = UriBuilder.fromUri("/abc?a%20b=A%20B").buildUriComponents();
+        uriComponents = UriBuilder.fromUri("/abc?a%20b=A%20B").toUriComponents();
         System.out.println(uriComponents);
     }
 }

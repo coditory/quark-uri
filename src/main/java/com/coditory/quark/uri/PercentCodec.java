@@ -122,7 +122,7 @@ public final class PercentCodec {
         }
 
         @NotNull
-        public PercentCodecBuilder charset(Charset charset) {
+        public PercentCodecBuilder charset(@NotNull Charset charset) {
             expectNonNull(charset, "charset");
             this.charset = charset;
             return this;
