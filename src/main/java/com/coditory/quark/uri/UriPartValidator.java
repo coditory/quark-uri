@@ -31,6 +31,7 @@ final class UriPartValidator {
             hostname = DOMAIN_PATTERN.matcher(host).matches();
         }
         if (hostname) {
+            if (host.equalsIgnoreCase("localhost")) return true;
             char[] chars = host.toCharArray();
             int size = 1;
             for (char element : chars) {

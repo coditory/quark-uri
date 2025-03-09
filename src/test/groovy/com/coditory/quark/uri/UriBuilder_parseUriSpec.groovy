@@ -120,4 +120,27 @@ class UriBuilder_parseUriSpec extends Specification {
             result.fragment == "frag語"
             result.isHttpUrl() == false
     }
+
+    def "should parse UriComponents from localhost http url"() {
+        when:
+            UriComponents result = UriComponents.fromUri("http://localhost:8080/help/test?a=a1&a=a2&b=b1#frag")
+        then:
+            result.schemeSpecificPart == null
+            result.opaque == false
+            result.scheme == "http"
+            result.userInfo == null
+            result.uriAuthority == UriAuthority.of(null, "localhost", 8080)
+            result.host == "localhost"
+            result.port == 8080
+            result.path == "/help/test"
+            result.pathSegments == ["help", "test"]
+            result.rootPath == true
+            result.queryString == "a=a1&a=a2&b=b1"
+            result.queryMultiParams == [
+                    a: ['a1', 'a2'],
+                    b: ['b1']
+            ]
+            result.fragment == "frag"
+            result.isHttpUrl() == true
+    }
 }
