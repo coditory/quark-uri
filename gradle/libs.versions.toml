@@ -11,5 +11,5 @@ gradle-nexus-publish = { module = "io.github.gradle-nexus:publish-plugin", versi
 # dependencies
 jetbrains-annotations = { module = "org.jetbrains:annotations", version = "26.0.2" }
 # test dependencies
-spock-core = { module = "org.spockframework:spock-core", version = "2.4-M5-groovy-4.0" }
+spock-core = { module = "org.spockframework:spock-core", version = "2.4-M6-groovy-4.0" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version = "1.5.18" }
