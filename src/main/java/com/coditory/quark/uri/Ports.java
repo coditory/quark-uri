@@ -37,6 +37,10 @@ public final class Ports {
         return PortsAvailable.getNextAvailable();
     }
 
+    public static int getNextAvailable(int fromPort) {
+        return PortsAvailable.getNextAvailable(fromPort);
+    }
+
     private Ports() {
         throw new UnsupportedOperationException("Do not instantiate utility class");
     }

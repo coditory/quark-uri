@@ -43,12 +43,18 @@ final class PortsAvailable {
     }
 
     public static synchronized int getNextAvailable() {
-        int next = getNextAvailable(currentMinPort.get());
+        int next = findNextAvailable(currentMinPort.get());
         currentMinPort.set(next + 1);
         return next;
     }
 
-    private static synchronized int getNextAvailable(int fromPort) {
+    public static synchronized int getNextAvailable(int fromPort) {
+        int next = findNextAvailable(Math.max(currentMinPort.get(), fromPort));
+        currentMinPort.set(next + 1);
+        return next;
+    }
+
+    private static synchronized int findNextAvailable(int fromPort) {
         if (fromPort < currentMinPort.get() || fromPort > MAX_PORT_NUMBER) {
             throw new IllegalArgumentException("From port number not in valid range: " + fromPort);
         }
