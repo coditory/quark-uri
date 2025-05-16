@@ -18,7 +18,7 @@ Add to your `build.gradle`:
 
 ```gradle
 dependencies {
-    implementation "com.coditory.quark:quark-uri:0.0.10"
+    implementation "com.coditory.quark:quark-uri:0.0.11"
 }
 ```
 
