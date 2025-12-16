@@ -2,7 +2,7 @@
 # build tools
 java = "21"
 jacoco = "0.8.12"
-kotlin = "2.2.21"
+kotlin = "2.3.0"
 
 [libraries]
 # build tools
